@@ -7,11 +7,13 @@ export default class App extends Component {
     constructor(props) {
         super(props);
         this.state = {
-            forecasts: [], loading: false,
+            forecasts: [], 
+            loading: false,
             solutionResult: null,
             numbers: [3,6,25,50,75,100],
             target: 952,
-            errMsgText: null
+            errMsgText: null,
+            countdownSolverHost: process.env.REACT_APP_COUNTDOWN_SOLVER_HOST
         };
     }
 
@@ -28,10 +30,15 @@ export default class App extends Component {
         this.setState({ numbers: n });
     }
 
+    getCountdownSolverHost = () => {
+        return this.state.countdownSolverHost
+    }
+
     handleSolve = async (event) => {
         let n = this.state.numbers;
         let t = this.state.target;
-        let url = `http://localhost:55599/api/solve?n=${n[0]}&n=${n[1]}&n=${n[2]}&n=${n[3]}&n=${n[4]}&n=${n[5]}&n=${t}`
+        let url = this.getCountdownSolverHost() + `/api/solve?n=${n[0]}&n=${n[1]}&n=${n[2]}&n=${n[3]}&n=${n[4]}&n=${n[5]}&n=${t}`
+        console.log(url);
         try {
             event.preventDefault();
             this.setState({ loading: true, solutionResult: null });
@@ -44,7 +51,9 @@ export default class App extends Component {
     }
 
     handleSolveRandom = async (event) => {
-        const url='http://localhost:55599/api/solve/random'
+        const url=this.getCountdownSolverHost() + '/api/solve/random'
+        console.log(url);
+
         try {
             event.preventDefault();
             this.setState({ loading: true, solutionResult: null, errMsgText: null });
@@ -65,6 +74,9 @@ export default class App extends Component {
         let result =
             <div>
                 <h1 id="tabelLabel" >Countdown solver</h1>
+                <pre>
+                    countdownSolverHost = {this.getCountdownSolverHost()}
+                </pre>
                 <hr />
                 <NumberInput id={0} onChange={this.numberChange} value={this.state.numbers[0]} />
                 <NumberInput id={1} onChange={this.numberChange} value={this.state.numbers[1]} />
@@ -137,24 +149,6 @@ class FormRandom extends Component {
         return (
             <form onSubmit={this.props.onSubmit}>
                 <button>Random selection</button>
-            </form>
-        )
-    }
-};
-
-class Form extends Component {
-    state = { target: 101 };
-    handleSubmit = async (event) => {
-        event.preventDefault();
-        const resp = await axios.get('http://localhost:55599/api/solve/random');
-        this.props.onSubmit(resp.data)
-    }
-    render() {
-        return (
-            <form onSubmit={this.handleSubmit}>
-                Target <input type="text" placeholder="Target" value={this.state.target}
-                    onChange={event => this.setState({target: event.target.value})} required />
-                <button>Go</button>
             </form>
         )
     }
